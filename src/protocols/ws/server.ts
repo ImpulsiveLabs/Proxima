@@ -32,14 +32,29 @@ class WS_Server implements ProtocolImpl {
                 throw new Error("Secure WebSocket server requires certificatePath and privateKeyPath.");
             }
 
-            const cert = await fs.promises.readFile(this.config.certificatePath);
-            const key = await fs.promises.readFile(this.config.privateKeyPath);
+            try {
+                const cert = await fs.promises.readFile(this.config.certificatePath, 'utf-8');
+                const key = await fs.promises.readFile(this.config.privateKeyPath, 'utf-8');
 
-            const httpsServer = https.createServer({ cert, key, passphrase: this.config.passphrase });
-            httpsServer.listen(this.config.port);
-            this.config.server = httpsServer;
+                const httpsServer = https.createServer({ cert, key, passphrase: this.config.passphrase });
+
+                return new Promise<void>((resolve, reject) => {
+                    httpsServer.listen(this.config.port, () => {
+                        this.config.server = httpsServer;
+                        console.log(`Secure WebSocket server listening on port ${this.config.port}`);
+                        resolve();
+                    });
+
+                    httpsServer.on('error', (err) => {
+                        reject(new Error(`Failed to start HTTPS server: ${err.message}`));
+                    });
+                });
+            } catch (error) {
+                throw new Error(`Error loading certificates: ${(error as Error).message}`);
+            }
         }
     }
+
 
     private registerClient(ws: WebSocket): string {
         const clientId = uuidv4();
@@ -119,15 +134,30 @@ class WS_Server implements ProtocolImpl {
     }
 
     public stop(): Promise<void> {
-        return new Promise((resolve) => {
-            this.wss?.close(() => {
-                Object.keys(this.clients).forEach((clientId) => {
-                    this.clients[clientId].websocket.terminate();
+        return new Promise((resolve, reject) => {
+            if (this.wss) {
+                this.wss.close(() => {
+                    console.log("WebSocket server stopped.");
                 });
-                console.log("WebSocket server stopped.");
-                resolve()
+            }
+
+            if (this.config.server) {
+                this.config.server.close((err) => {
+                    if (err) {
+                        reject(new Error(`Error closing HTTPS server: ${err.message}`));
+                    } else {
+                        console.log("HTTPS server stopped.");
+                        resolve();
+                    }
+                });
+            } else {
+                resolve();
+            }
+
+            Object.keys(this.clients).forEach((clientId) => {
+                this.clients[clientId].websocket.terminate();
             });
-        })
+        });
     }
 
     public async start(): Promise<void> {
