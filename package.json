@@ -1,0 +1,78 @@
+{
+  "name": "proxima",
+  "version": "1.0.0",
+  "repository": "https://github.com/ImpulsiveLabs/Proxima.git",
+  "author": "mrVladimirN <vladimir.nitu.business@outlook.com>",
+  "license": "MIT",
+  "scripts": {
+    "lint": "eslint . --ext .ts,.js",
+    "lint:fix": "eslint . --ext .ts,.js --fix",
+    "version": "standard-version",
+    "depcheck": "depcheck",
+    "test": "jest",
+    "prepare": "husky install",
+    "postversion": "npm publish",
+    "build:ts": "tsc",
+    "release": "yarn lint:fix && yarn version && git push --follow-tags origin main"
+  },
+  "dependencies": {
+    "uuid": "11.0.3",
+    "ws": "8.15.0"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "17.4.4",
+    "@commitlint/config-conventional": "17.4.4",
+    "@types/jest": "9.5.12",
+    "@types/uuid": "^10.0.0",
+    "@types/ws": "8",
+    "@typescript-eslint/eslint-plugin": "6.21.0",
+    "depcheck": "1.4.7",
+    "eslint": "8.57.0",
+    "eslint-config-airbnb-base": "15.0.0",
+    "eslint-plugin-import": "2.29.0",
+    "eslint-plugin-node": "11.1.0",
+    "eslint-plugin-promise": "6.1.1",
+    "husky": "8.0.3",
+    "jest": "29.7.0",
+    "jest-junit": "16.0.0",
+    "standard-version": "9.5.0",
+    "ts-jest": "29.1.1",
+    "typescript": "5.5.4"
+  },
+  "jest": {
+    "collectCoverage": true,
+    "roots": [
+      "<rootDir>/__tests__"
+    ],
+    "collectCoverageFrom": [
+      "**/*.{js,ts}",
+      "!coverage/**",
+      "!**/node_modules/**",
+      "!**/dist/**",
+      "!**/commitlint.config.js"
+    ],
+    "transform": {
+      ".+\\.ts$": "ts-jest"
+    },
+    "coverageReporters": [
+      "text",
+      "text-summary"
+    ],
+    "reporters": [
+      "default"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 0,
+        "functions": 0,
+        "lines": 0,
+        "statements": 0
+      }
+    },
+    "testEnvironment": "node"
+  },
+  "engines": {
+    "node": "20.x"
+  },
+  "packageManager": "yarn@4.6.0"
+}
