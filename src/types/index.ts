@@ -1,6 +1,6 @@
-import WS_Server from "src/protocols/ws/server"
+import WS_Server from "../protocols/ws/server"
 import { WebSocketClientConfig, WebSocketServerConfig, WebSocketConfig } from "../protocols/ws/types"
-import WS_Client from "src/protocols/ws/client"
+import WS_Client from "../protocols/ws/client"
 
 interface ProtocolImpl {
     start: () => Promise<void>

@@ -8,7 +8,7 @@
     "lint": "eslint . --ext .ts,.js",
     "lint:fix": "eslint . --ext .ts,.js --fix",
     "version": "standard-version",
-    "depcheck": "depcheck",
+    "depcheck": "depcheck --ignore-bin-package --ignores='jest,ts-jest,@types/jest,jest-junit,@commitlint/config-conventional,@commitlint/cli,standard-version,@typescript-eslint/parser,@typescript-eslint/eslint-plugin,eslint-config-airbnb-base,eslint-plugin-import,eslint-plugin-node,eslint-plugin-promise,zod,zod-error'",
     "test": "jest",
     "prepare": "husky install",
     "postversion": "npm publish",
