@@ -1,12 +1,22 @@
 import WS_Client from "./protocols/ws/client";
 import WS_Server from "./protocols/ws/server";
-import { Protocol, ProtocolConfig, ProximaConfig, ProximaProtocol } from "./types";
+import FTP_Client from "./protocols/ftp/client";
+import {
+    FTPClientConfig,
+    Protocol,
+    ProtocolConfig,
+    ProtocolConfigString,
+    ProximaConfig,
+    ProximaProtocol,
+    WebSocketClientConfig,
+    WebSocketServerConfig
+} from "./types";
 import { deepEqual } from './utils/utils';
-import { WebSocketConfig } from './protocols/ws/types/index';
 
 class Proxima {
     ws_server?: WS_Server;
     ws_client?: WS_Client;
+    ftp_client?: FTP_Client;
     private intervalId?: NodeJS.Timeout;
     private lastState: string | undefined;
     private lastConfig: Partial<ProximaConfig> = {};
@@ -54,20 +64,24 @@ class Proxima {
         const protocols = this.lastState?.split(",").map((protocol) => protocol.trim()) || [];
         console.log("Protocols to manage:", protocols);
 
-        // Handle WebSocket Server
         await this.manageProtocol(
             ProximaProtocol.WS_SERVER,
             protocols,
-            this.proximaConfig.wsServerConfig,
-            () => new WS_Server(this.proximaConfig.wsServerConfig),
+            this.proximaConfig.wsServerConfig as WebSocketServerConfig,
+            () => new WS_Server(this.proximaConfig.wsServerConfig as WebSocketServerConfig),
         );
 
-        // Handle WebSocket Client
         await this.manageProtocol(
             ProximaProtocol.WS_CLIENT,
             protocols,
-            this.proximaConfig.wsClientConfig,
-            () => new WS_Client(this.proximaConfig.wsClientConfig),
+            this.proximaConfig.wsClientConfig as WebSocketClientConfig,
+            () => new WS_Client(this.proximaConfig.wsClientConfig as WebSocketClientConfig),
+        );
+        await this.manageProtocol(
+            ProximaProtocol.FTP_Client,
+            protocols,
+            this.proximaConfig.ftpClientConfig as FTPClientConfig,
+            () => new FTP_Client(this.proximaConfig.ftpClientConfig as FTPClientConfig),
         );
     }
 
@@ -75,7 +89,7 @@ class Proxima {
     private async manageProtocol(
         protocol: ProximaProtocol,
         protocols: string[],
-        config: WebSocketConfig,
+        config: ProtocolConfig,
         createInstance: () => Protocol,
     ): Promise<void> {
         const instance = this[protocol];
@@ -91,7 +105,7 @@ class Proxima {
                 await newInstance.start();
                 console.log(`${protocol} started with new configuration.`);
                 (this[protocol] as Protocol) = newInstance;
-                (this.lastConfig[configKey] as WebSocketConfig) = { ...config };
+                (this.lastConfig[configKey] as ProtocolConfig) = { ...config };
             }
         } else if (instance) {
             await instance.stop();
@@ -100,20 +114,20 @@ class Proxima {
         }
     }
 
-    private generateConfigKey(protocol: ProximaProtocol): ProtocolConfig {
+    private generateConfigKey(protocol: ProximaProtocol): ProtocolConfigString {
         const parts = protocol.toLowerCase().split("_");
-        return `${parts[0]}${parts[1]?.charAt(0).toUpperCase()}${parts[1]?.slice(1)}Config` as ProtocolConfig;
+        return `${parts[0]}${parts[1]?.charAt(0).toUpperCase()}${parts[1]?.slice(1)}Config` as ProtocolConfigString;
     }
 
     private async stopAll(): Promise<void> {
-        const protocolKeys: ProximaProtocol[] =  Object.values(ProximaProtocol);
+        const protocolKeys: ProximaProtocol[] = Object.values(ProximaProtocol);
 
         for (const key of protocolKeys) {
             const instance: Protocol = (this[key]) as Protocol;
 
             if (instance && typeof instance.stop === 'function') {
                 await instance.stop();
-                this[key]= undefined;
+                this[key] = undefined;
                 console.log(`${key} stopped.`);
             }
         }

@@ -16,6 +16,7 @@
     "release": "yarn lint:fix && yarn version && git push --follow-tags origin main"
   },
   "dependencies": {
+    "basic-ftp": "5.0.5",
     "uuid": "11.0.3",
     "ws": "8.15.0"
   },

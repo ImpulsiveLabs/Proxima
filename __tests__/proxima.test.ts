@@ -1,10 +1,12 @@
 import Proxima from '../src/index';
+import FTP_Client from '../src/protocols/ftp/client';
 import WS_Client from '../src/protocols/ws/client';
 import WS_Server from '../src/protocols/ws/server';
 import { ProximaProtocol, ProximaConfig } from '../src/types';
 
 jest.mock('../src/protocols/ws/client');
 jest.mock('../src/protocols/ws/server');
+jest.mock('../src/protocols/ftp/client');
 
 const mockStart = jest.fn();
 const mockStop = jest.fn();
@@ -19,6 +21,11 @@ const mockStop = jest.fn();
     stop: mockStop,
 }));
 
+(FTP_Client as jest.Mock).mockImplementation(() => ({
+    start: mockStart,
+    stop: mockStop,
+}));
+
 describe('Proxima Class Tests', () => {
     let proxima: Proxima;
 
@@ -26,13 +33,14 @@ describe('Proxima Class Tests', () => {
         configChangeInterval: 200,
         wsClientConfig: { url: 'ws://localhost:8080' },
         wsServerConfig: { port: 8081 },
+        ftpClientConfig: {}
     };
 
     beforeEach(() => {
         jest.clearAllMocks();
         proxima = new Proxima(initialConfig);
     });
-    afterEach(async ()=> {
+    afterEach(async () => {
         await proxima.stopMonitoring()
 
     })
@@ -47,6 +55,15 @@ describe('Proxima Class Tests', () => {
         await proxima.checkEnvironment();
 
         expect(WS_Server).toHaveBeenCalledWith(initialConfig.wsServerConfig);
+        expect(mockStart).toHaveBeenCalled();
+        expect(mockStop).not.toHaveBeenCalled();
+    });
+
+    test('should configure and start the Ftp client', async () => {
+        proxima.setState(`${ProximaProtocol.FTP_Client}`);
+        await proxima.checkEnvironment();
+
+        expect(FTP_Client).toHaveBeenCalledWith(initialConfig.ftpClientConfig);
         expect(mockStart).toHaveBeenCalled();
         expect(mockStop).not.toHaveBeenCalled();
     });
