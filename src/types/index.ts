@@ -2,7 +2,7 @@ import WS_Server from "../protocols/ws/server"
 import { WebSocketClientConfig, WebSocketServerConfig, WebSocketConfig } from "../protocols/ws/types"
 import WS_Client from "../protocols/ws/client"
 import { FTPClientConfig } from "../protocols/ftp/types"
-import FTP_Client from "src/protocols/ftp/client"
+import FTP_Client from "../protocols/ftp/client"
 
 interface ProtocolImpl {
     start: () => Promise<void>
