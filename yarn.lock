@@ -401,12 +401,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@commitlint/config-conventional@npm:17.4.4":
-  version: 17.4.4
-  resolution: "@commitlint/config-conventional@npm:17.4.4"
+"@commitlint/config-conventional@npm:19.6.0":
+  version: 19.6.0
+  resolution: "@commitlint/config-conventional@npm:19.6.0"
   dependencies:
-    conventional-changelog-conventionalcommits: "npm:^5.0.0"
-  checksum: 10/679d92509fe6e53ee0cc4202f8069d88360c4f9dbd7ab74114bb28278a196da517ef711dfe69893033a66e54ffc29e8df2ccf63cfd746a89c82a053949473c4b
+    "@commitlint/types": "npm:^19.5.0"
+    conventional-changelog-conventionalcommits: "npm:^7.0.2"
+  checksum: 10/f96f6706502edad60d275f62a4aac06993a5fd47c343ad6286d48f173941e4e0848dab6642559099cc6714b513197338ac24da4b07debead5371326eef87bcb8
   languageName: node
   linkType: hard
 
@@ -2147,14 +2148,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"conventional-changelog-conventionalcommits@npm:^5.0.0":
-  version: 5.0.0
-  resolution: "conventional-changelog-conventionalcommits@npm:5.0.0"
+"conventional-changelog-conventionalcommits@npm:^7.0.2":
+  version: 7.0.2
+  resolution: "conventional-changelog-conventionalcommits@npm:7.0.2"
   dependencies:
     compare-func: "npm:^2.0.0"
-    lodash: "npm:^4.17.15"
-    q: "npm:^1.5.1"
-  checksum: 10/cf67329999ed5798fcca243a5d66479f6f8f2122e61a3144186ae3fd15481e9d6647ed7ca74d59d5cfdc568f8c4298ae4cd90b389aecd285cc6a1ba823d85a96
+  checksum: 10/3cc6586ac57cc54c0595b28ae22e8b674c970034bad35e467f71aba395278a6ef43351cfbf782a5fc33eb13ed4ad843a145b89ad1444f5fa571e3bf9c1d5519b
   languageName: node
   linkType: hard
 
@@ -6066,7 +6065,7 @@ __metadata:
   resolution: "proxima@workspace:."
   dependencies:
     "@commitlint/cli": "npm:19.6.1"
-    "@commitlint/config-conventional": "npm:17.4.4"
+    "@commitlint/config-conventional": "npm:19.6.0"
     "@types/jest": "npm:29.5.12"
     "@types/uuid": "npm:10.0.0"
     "@types/ws": "npm:8"
