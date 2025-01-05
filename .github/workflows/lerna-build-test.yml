@@ -27,5 +27,16 @@ jobs:
       - name: Build TypeScript
         run: yarn build:ts
 
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and run FTP server container
+        run: |
+          docker-compose -f docker-compose.yml up -d ftp-server
+
+      - name: Change password for testuser inside the container
+        run: |
+          docker exec -it ftp-server /bin/sh -c "echo 'testuser:password1234!' | chpasswd"
+
       - name: Run Tests
         run: yarn test

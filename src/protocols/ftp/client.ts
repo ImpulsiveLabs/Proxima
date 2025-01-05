@@ -1,5 +1,5 @@
 import { ProtocolImpl } from "../../types/index";
-import { Client } from "basic-ftp";
+import { Client, FileInfo } from "basic-ftp";
 import { FTPClientConfig } from "./types";
 
 
@@ -92,12 +92,13 @@ class FTP_Client implements ProtocolImpl {
         console.log(`File downloaded from ${remotePath} to ${localPath}`);
     }
 
-    public async listFiles(path?: string): Promise<void> {
+    public async listFiles(path?: string): Promise<FileInfo[]> {
         if (!this.isConnected) {
             throw new Error("FTP client is not connected.");
         }
         const fileList = await this.client.list(path);
         console.log("Files:", fileList);
+        return fileList;
     }
 
     public async removeFile(path: string): Promise<void> {
