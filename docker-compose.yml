@@ -1,0 +1,15 @@
+services:
+  ftp-server:
+    image: delfer/alpine-ftp-server
+    container_name: ftp-server
+    ports:
+      - "21:21"                  
+      - "21000-21010:21000-21010" 
+    environment:
+      USERS: "testuser|Complex$Password123456789!|/home/testuser"
+      ADDRESS: "localhost"
+      PASV_MIN_PORT: "0"
+      PASV_MAX_PORT: "0"
+    volumes:
+      - ./ftp-data:/home/testuser 
+    restart: always 

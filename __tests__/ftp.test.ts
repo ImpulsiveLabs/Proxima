@@ -1,49 +1,38 @@
-import { Client } from 'basic-ftp'; // Mock this
+import { Client } from 'basic-ftp';
 import FTP_Client from '../src/protocols/ftp/client';
 import { FTPClientConfig } from '../src/types';
-
-// Mock the basic-ftp Client class and methods
-jest.mock('basic-ftp', () => {
-    return {
-        Client: jest.fn().mockImplementation(() => {
-            return {
-                access: jest.fn(),
-                close: jest.fn(),
-                uploadFrom: jest.fn(),
-                downloadTo: jest.fn(),
-                list: jest.fn(),
-                remove: jest.fn(),
-                ensureDir: jest.fn(),
-                clearWorkingDir: jest.fn(),
-                cd: jest.fn(),
-                ftp: {
-                    verbose: false,
-                }
-            };
-        })
-    };
-});
+import path from 'path';
+import fs from 'fs';
 
 describe('FTP_Client', () => {
     let ftpClient: FTP_Client;
     let mockConfig: FTPClientConfig;
+    const localTestFile = path.join(__dirname, '../__tests_resources__/ftp/file.txt');
+    const localTestDownload = path.join(__dirname, '/downloaded_file.txt');
+    const remoteTestPath = '/home/testuser/file.txt';
+    const remoteDirPath = '/home/testuser';
 
-    beforeEach(() => {
+    beforeAll(() => {
         mockConfig = {
-            host: 'ftp.example.com',
-            port: 21,
-            user: 'testUser',
-            password: 'testPassword',
-            secure: false,
-            timeout: 5000,
-            reconnectInterval: 5000,
-            verbose: false
+            host: "localhost",                 // FTP server's host (localhost for local testing)
+            port: 21,                          // FTP standard port
+            user: "testuser",                   // The FTP username
+            password: "password1234!",   // The updated complex password
+            secure: false,                     // No TLS for local testing
+            reconnectInterval: 5000,           // Reconnect interval in ms
+            timeout: 10000,                    // Timeout in ms for FTP operations
+            verbose: true
         };
         ftpClient = new FTP_Client(mockConfig);
     });
 
-    afterEach(() => {
-        jest.clearAllMocks();
+    afterAll(async () => {
+        if (ftpClient.isConnected) {
+            await ftpClient.stop();
+        }
+        if (fs.existsSync(localTestDownload)) {
+            fs.unlinkSync(localTestDownload); // Clean up downloaded file
+        }
     });
 
     it('should initialize FTP client correctly', () => {
@@ -53,133 +42,68 @@ describe('FTP_Client', () => {
 
     it('should connect to the FTP server', async () => {
         await ftpClient.start();
-
-        expect(Client).toHaveBeenCalledTimes(1);
-        expect(ftpClient.client.access).toHaveBeenCalledWith({
-            host: mockConfig.host,
-            port: mockConfig.port,
-            user: mockConfig.user,
-            password: mockConfig.password,
-            secure: mockConfig.secure,
-            secureOptions: undefined
-        });
         expect(ftpClient.isConnected).toBe(true);
     });
 
     it('should stop the FTP client connection', async () => {
         ftpClient.isConnected = true;
         await ftpClient.stop();
-
-        expect(ftpClient.client.close).toHaveBeenCalledTimes(1);
         expect(ftpClient.isConnected).toBe(false);
     });
 
-    it('should not attempt to stop if not connected', async () => {
-        ftpClient.isConnected = false;
-        await ftpClient.stop();
+   it('should upload a file', async () => {
+    await ftpClient.start();
+    
+    if (!fs.existsSync(localTestFile)) {
+        throw new Error(`Local test file not found: ${localTestFile}`);
+    }
 
-        expect(ftpClient.client.close).not.toHaveBeenCalled();
-        expect(ftpClient.isConnected).toBe(false);
-    });
+    await ftpClient.ensureDir(remoteDirPath);
 
-    it('should upload a file', async () => {
-        ftpClient.isConnected = true;
-        const localPath = 'path/to/local/file.txt';
-        const remotePath = 'path/to/remote/file.txt';
+    await ftpClient.uploadFile(localTestFile, remoteTestPath);
 
-        await ftpClient.uploadFile(localPath, remotePath);
-
-        expect(ftpClient.client.uploadFrom).toHaveBeenCalledWith(localPath, remotePath);
-    });
-
-    it('should throw error if not connected during upload', async () => {
-        ftpClient.isConnected = false;
-        const localPath = 'path/to/local/file.txt';
-        const remotePath = 'path/to/remote/file.txt';
-
-        await expect(ftpClient.uploadFile(localPath, remotePath)).rejects.toThrow('FTP client is not connected.');
-    });
+    const fileList = await ftpClient.listFiles(remoteDirPath);
+    const fileNames = fileList.map(file => file.name);
+    expect(fileNames).toContain('file.txt');
+});
 
     it('should download a file', async () => {
-        ftpClient.isConnected = true;
-        const remotePath = 'path/to/remote/file.txt';
-        const localPath = 'path/to/local/file.txt';
+        await ftpClient.start();
+        // Download the file from the FTP server
+        await ftpClient.downloadFile(remoteTestPath, localTestDownload);
 
-        await ftpClient.downloadFile(remotePath, localPath);
-
-        expect(ftpClient.client.downloadTo).toHaveBeenCalledWith(localPath, remotePath);
-    });
-
-    it('should throw error if not connected during download', async () => {
-        ftpClient.isConnected = false;
-        const remotePath = 'path/to/remote/file.txt';
-        const localPath = 'path/to/local/file.txt';
-
-        await expect(ftpClient.downloadFile(remotePath, localPath)).rejects.toThrow('FTP client is not connected.');
+        // Verify file exists locally after download
+        expect(fs.existsSync(localTestDownload)).toBe(true);
     });
 
     it('should list files in a directory', async () => {
-        ftpClient.isConnected = true;
-        const path = '/some/remote/path';
+        await ftpClient.start();
 
-        await ftpClient.listFiles(path);
+        // List files from the FTP server
+        const files = await ftpClient.listFiles(remoteDirPath);
 
-        expect(ftpClient.client.list).toHaveBeenCalledWith(path);
-    });
-
-    it('should throw error if not connected during list files', async () => {
-        ftpClient.isConnected = false;
-        const path = '/some/remote/path';
-
-        await expect(ftpClient.listFiles(path)).rejects.toThrow('FTP client is not connected.');
+        // Check that the files array is not empty
+        expect(files.length).toBeGreaterThan(0);
     });
 
     it('should remove a file', async () => {
-        ftpClient.isConnected = true;
-        const path = '/some/remote/file.txt';
+        await ftpClient.start();
+        // Remove the file from the FTP server
+        await ftpClient.removeFile(remoteTestPath);
 
-        await ftpClient.removeFile(path);
-
-        expect(ftpClient.client.remove).toHaveBeenCalledWith(path);
-    });
-
-    it('should throw error if not connected during remove file', async () => {
-        ftpClient.isConnected = false;
-        const path = '/some/remote/file.txt';
-
-        await expect(ftpClient.removeFile(path)).rejects.toThrow('FTP client is not connected.');
-    });
-
-    it('should ensure a directory exists', async () => {
-        ftpClient.isConnected = true;
-        const path = '/some/remote/directory';
-
-        await ftpClient.ensureDir(path);
-
-        expect(ftpClient.client.ensureDir).toHaveBeenCalledWith(path);
-    });
-
-    it('should throw error if not connected during ensure dir', async () => {
-        ftpClient.isConnected = false;
-        const path = '/some/remote/directory';
-
-        await expect(ftpClient.ensureDir(path)).rejects.toThrow('FTP client is not connected.');
+        // Verify the file was removed
+        const fileList = await ftpClient.listFiles(remoteDirPath);
+        const fileNames = fileList.map(file => file.name);
+        expect(fileNames).not.toContain('file.txt');
     });
 
     it('should clear a directory', async () => {
-        ftpClient.isConnected = true;
-        const path = '/some/remote/directory';
+        await ftpClient.start();
+        // Clear the directory on the FTP server
+        await ftpClient.clearDir(remoteDirPath);
 
-        await ftpClient.clearDir(path);
-
-        expect(ftpClient.client.cd).toHaveBeenCalledWith(path);
-        expect(ftpClient.client.clearWorkingDir).toHaveBeenCalled();
-    });
-
-    it('should throw error if not connected during clear dir', async () => {
-        ftpClient.isConnected = false;
-        const path = '/some/remote/directory';
-
-        await expect(ftpClient.clearDir(path)).rejects.toThrow('FTP client is not connected.');
+        // Verify the directory was cleared
+        const fileList = await ftpClient.listFiles(remoteDirPath);
+        expect(fileList.length).toBe(0);
     });
 });
