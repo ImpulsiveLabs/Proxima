@@ -42,7 +42,7 @@ jobs:
 
       - name: Change password for testuser inside the container
         run: |
-          docker exec -it ftp-server /bin/sh -c "echo 'testuser:password1234!' | chpasswd"
+          docker exec ftp-server /bin/sh -c "echo 'testuser:password1234!' | chpasswd"
 
       - name: Run Tests
         run: yarn test
