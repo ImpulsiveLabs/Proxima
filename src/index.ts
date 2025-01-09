@@ -3,6 +3,7 @@ import WS_Server from "./protocols/ws/server";
 import FTP_Client from "./protocols/ftp/client";
 import {
     FTPClientConfig,
+    KafkaClientConfig,
     Protocol,
     ProtocolConfig,
     ProtocolConfigString,
@@ -12,11 +13,13 @@ import {
     WebSocketServerConfig
 } from "./types";
 import { deepEqual } from './utils/utils';
+import Kafka_Client from "./protocols/kafka/client";
 
 class Proxima {
     ws_server?: WS_Server;
     ws_client?: WS_Client;
     ftp_client?: FTP_Client;
+    kafka_client?: Kafka_Client;
     private intervalId?: NodeJS.Timeout;
     private lastState: string | undefined;
     private lastConfig: Partial<ProximaConfig> = {};
@@ -78,10 +81,16 @@ class Proxima {
             () => new WS_Client(this.proximaConfig.wsClientConfig as WebSocketClientConfig),
         );
         await this.manageProtocol(
-            ProximaProtocol.FTP_Client,
+            ProximaProtocol.FTP_CLIENT,
             protocols,
             this.proximaConfig.ftpClientConfig as FTPClientConfig,
             () => new FTP_Client(this.proximaConfig.ftpClientConfig as FTPClientConfig),
+        );
+        await this.manageProtocol(
+            ProximaProtocol.KAKFKA_CLIENT,
+            protocols,
+            this.proximaConfig.kafkaClientConfig as KafkaClientConfig,
+            () => new Kafka_Client(this.proximaConfig.kafkaClientConfig as KafkaClientConfig),
         );
     }
 
