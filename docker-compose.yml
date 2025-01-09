@@ -13,3 +13,43 @@ services:
     volumes:
       - ./ftp-data:/home/testuser 
     restart: always 
+
+  zookeeper:
+    image: wurstmeister/zookeeper
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    ports:
+      - "2181:2181"
+    networks:
+      - kafka-net
+
+  kafka:
+    image: wurstmeister/kafka:latest
+    container_name: kafka
+    environment:
+      KAFKA_LISTENER_SECURITY_PROTOCOL: PLAINTEXT
+      KAFKA_LISTENERS: INSIDE_KAFKA://0.0.0.0:9093,EXTERNAL://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: INSIDE_KAFKA://kafka:9093,EXTERNAL://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE_KAFKA:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_LISTENER_NAME_INSIDE_KAFKA: INSIDE_KAFKA
+      KAFKA_LISTENER_NAME_EXTERNAL: EXTERNAL
+      KAFKA_LISTENER_PORT_INSIDE_KAFKA: 9093
+      KAFKA_LISTENER_PORT_EXTERNAL: 9092
+      KAFKA_LISTENER_INTERFACE: eth0
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE_KAFKA:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENER_NAME_INSIDE_KAFKA: INSIDE_KAFKA
+      KAFKA_ADVERTISED_LISTENER_NAME_EXTERNAL: EXTERNAL
+      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE_KAFKA
+    ports:
+      - "9092:9092"  # EXTERNAL listener
+      - "9093:9093"  # INSIDE_KAFKA listener
+    depends_on:
+      - zookeeper
+    networks:
+      - kafka-net
+
+networks:
+  kafka-net:
+    driver: bridge

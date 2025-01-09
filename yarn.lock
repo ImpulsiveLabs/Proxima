@@ -4977,6 +4977,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"kafkajs@npm:2.2.4":
+  version: 2.2.4
+  resolution: "kafkajs@npm:2.2.4"
+  checksum: 10/75eb0d221397085f90e51f8a2d752495c9fa9c1b3a1a6db610cd7074fa8c52777f295832fd0a7c49cded5e574337a09fafa8c3f7cf1caa38f4dc9aa20fcfb7df
+  languageName: node
+  linkType: hard
+
 "keyv@npm:^4.5.3":
   version: 4.5.4
   resolution: "keyv@npm:4.5.4"
@@ -6096,6 +6103,7 @@ __metadata:
     husky: "npm:8.0.3"
     jest: "npm:29.7.0"
     jest-junit: "npm:16.0.0"
+    kafkajs: "npm:2.2.4"
     standard-version: "npm:9.5.0"
     ts-jest: "npm:29.1.1"
     typescript: "npm:5.7.2"
