@@ -50,6 +50,15 @@ services:
     networks:
       - kafka-net
 
+  mqtt:
+    image: eclipse-mosquitto:latest
+    container_name: mqtt-broker
+    ports:
+      - "1883:1883"  # MQTT protocol
+      - "8883:8883"
+    command: ["usr/sbin/mosquitto", "-c", "/mosquitto-no-auth.conf"]
+    restart: always
+
 networks:
   kafka-net:
     driver: bridge
