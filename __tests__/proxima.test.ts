@@ -3,12 +3,14 @@ import FTP_Client from '../src/protocols/ftp/client';
 import Kafka_Client from '../src/protocols/kafka/client';
 import WS_Client from '../src/protocols/ws/client';
 import WS_Server from '../src/protocols/ws/server';
+import Mqtt_Client from '../src/protocols/mqtt/client';
 import { ProximaProtocol, ProximaConfig } from '../src/types';
 
 jest.mock('../src/protocols/ws/client');
 jest.mock('../src/protocols/ws/server');
 jest.mock('../src/protocols/ftp/client');
 jest.mock('../src/protocols/kafka/client');
+jest.mock('../src/protocols/mqtt/client');
 
 const mockStart = jest.fn();
 const mockStop = jest.fn();
@@ -32,6 +34,11 @@ const mockStop = jest.fn();
     start: mockStart,
     stop: mockStop,
 }));
+
+(Mqtt_Client as jest.Mock).mockImplementation(() => ({
+    start: mockStart,
+    stop: mockStop,
+}));
 describe('Proxima Class Tests', () => {
     let proxima: Proxima;
 
@@ -41,6 +48,7 @@ describe('Proxima Class Tests', () => {
         wsServerConfig: { port: 8081 },
         ftpClientConfig: {},
         kafkaClientConfig: { topics: [''], groupId: '', brokers: [] },
+        mqttClientConfig: { clientId: '', brokerUrl: '', topics: [] }
     };
 
     beforeEach(() => {
@@ -75,9 +83,16 @@ describe('Proxima Class Tests', () => {
         expect(mockStop).not.toHaveBeenCalled();
     });
     test('should configure and start the Kafka client', async () => {
-        proxima.setState(`${ProximaProtocol.KAKFKA_CLIENT}`);
+        proxima.setState(`${ProximaProtocol.KAFKA_CLIENT}`);
         await proxima.checkEnvironment();
         expect(Kafka_Client).toHaveBeenCalledWith(initialConfig.kafkaClientConfig);
+        expect(mockStart).toHaveBeenCalled();
+        expect(mockStop).not.toHaveBeenCalled();
+    });
+    test('should configure and start the MQTT client', async () => {
+        proxima.setState(`${ProximaProtocol.MQTT_CLIENT}`);
+        await proxima.checkEnvironment();
+        expect(Mqtt_Client).toHaveBeenCalledWith(initialConfig.mqttClientConfig);
         expect(mockStart).toHaveBeenCalled();
         expect(mockStop).not.toHaveBeenCalled();
     });
