@@ -4,6 +4,7 @@ import FTP_Client from "./protocols/ftp/client";
 import {
     FTPClientConfig,
     KafkaClientConfig,
+    MqttClientConfig,
     Protocol,
     ProtocolConfig,
     ProtocolConfigString,
@@ -14,12 +15,14 @@ import {
 } from "./types";
 import { deepEqual } from './utils/utils';
 import Kafka_Client from "./protocols/kafka/client";
+import Mqtt_Client from "./protocols/mqtt/client";
 
 class Proxima {
     ws_server?: WS_Server;
     ws_client?: WS_Client;
     ftp_client?: FTP_Client;
     kafka_client?: Kafka_Client;
+    mqtt_client?: Mqtt_Client
     private intervalId?: NodeJS.Timeout;
     private lastState: string | undefined;
     private lastConfig: Partial<ProximaConfig> = {};
@@ -87,10 +90,15 @@ class Proxima {
             () => new FTP_Client(this.proximaConfig.ftpClientConfig as FTPClientConfig),
         );
         await this.manageProtocol(
-            ProximaProtocol.KAKFKA_CLIENT,
+            ProximaProtocol.KAFKA_CLIENT,
             protocols,
             this.proximaConfig.kafkaClientConfig as KafkaClientConfig,
             () => new Kafka_Client(this.proximaConfig.kafkaClientConfig as KafkaClientConfig),
+        ); await this.manageProtocol(
+            ProximaProtocol.MQTT_CLIENT,
+            protocols,
+            this.proximaConfig.mqttClientConfig as MqttClientConfig,
+            () => new Mqtt_Client(this.proximaConfig.mqttClientConfig as MqttClientConfig),
         );
     }
 

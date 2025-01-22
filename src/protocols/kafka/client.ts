@@ -30,7 +30,6 @@ class Kafka_Client implements ProtocolImpl {
             console.log("Kafka client is already connected. Ignoring start request.");
             return;
         }
-
         if (this.reconnectTimeout) {
             clearTimeout(this.reconnectTimeout);
             this.reconnectTimeout = null;

@@ -5,6 +5,8 @@ import { FTPClientConfig } from "../protocols/ftp/types"
 import FTP_Client from "../protocols/ftp/client"
 import { KafkaClientConfig } from "../protocols/kafka/types"
 import Kafka_Client from "../protocols/kafka/client"
+import Mqtt_Client from "../protocols/mqtt/client"
+import { MqttClientConfig } from "../protocols/mqtt/types"
 
 interface ProtocolImpl {
     start: () => Promise<void>
@@ -15,15 +17,16 @@ interface ProtocolImpl {
     receiveData?: (data: Record<string, unknown>) => Promise<Record<string, unknown>>
 }
 
-type Protocol = WS_Client | WS_Server | FTP_Client | Kafka_Client
+type Protocol = WS_Client | WS_Server | FTP_Client | Kafka_Client | Mqtt_Client
 
 enum ProximaProtocol {
     'WS_CLIENT' = 'ws_client',
     'WS_SERVER' = 'ws_server',
     'FTP_CLIENT' = 'ftp_client',
-    'KAKFKA_CLIENT' = 'kafka_client'
+    'KAFKA_CLIENT' = 'kafka_client',
+    'MQTT_CLIENT' = 'mqtt_client'
 }
-type ProtocolConfigString = "wsServerConfig" | "wsClientConfig" | 'ftpClientConfig' | 'kafkaClientConfig';
+type ProtocolConfigString = "wsServerConfig" | "wsClientConfig" | 'ftpClientConfig' | 'kafkaClientConfig' | 'mqttClientConfig';
 
 type ProtocolConfig = WebSocketClientConfig | WebSocketServerConfig | FTPClientConfig | KafkaClientConfig;
 
@@ -32,7 +35,8 @@ type ProximaConfig = {
     wsClientConfig?: WebSocketClientConfig,
     wsServerConfig?: WebSocketServerConfig,
     ftpClientConfig?: FTPClientConfig,
-    kafkaClientConfig?: KafkaClientConfig
+    kafkaClientConfig?: KafkaClientConfig,
+    mqttClientConfig?: MqttClientConfig
 }
 
 export {
@@ -46,5 +50,6 @@ export {
     ProtocolConfig,
     ProtocolConfigString,
     FTPClientConfig,
-    KafkaClientConfig
+    KafkaClientConfig,
+    MqttClientConfig
 }
