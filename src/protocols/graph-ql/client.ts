@@ -1,6 +1,6 @@
 import { ApolloClient, InMemoryCache, gql } from '@apollo/client/core';
 import { GraphQLClientConfig } from './types';
-import { ProtocolImpl } from 'src/types';
+import { ProtocolImpl } from "../../types/index";
 
 class GraphQL_Client implements ProtocolImpl {
     private client: ApolloClient<any>;
