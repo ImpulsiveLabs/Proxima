@@ -5,12 +5,14 @@ import WS_Client from '../src/protocols/ws/client';
 import WS_Server from '../src/protocols/ws/server';
 import Mqtt_Client from '../src/protocols/mqtt/client';
 import { ProximaProtocol, ProximaConfig } from '../src/types';
+import GraphQL_Client from '../src/protocols/graph-ql/client';
 
 jest.mock('../src/protocols/ws/client');
 jest.mock('../src/protocols/ws/server');
 jest.mock('../src/protocols/ftp/client');
 jest.mock('../src/protocols/kafka/client');
 jest.mock('../src/protocols/mqtt/client');
+jest.mock('../src/protocols/graph-ql/client');
 
 const mockStart = jest.fn();
 const mockStop = jest.fn();
@@ -39,6 +41,11 @@ const mockStop = jest.fn();
     start: mockStart,
     stop: mockStop,
 }));
+
+(GraphQL_Client as jest.Mock).mockImplementation(() => ({
+    start: mockStart,
+    stop: mockStop,
+}));
 describe('Proxima Class Tests', () => {
     let proxima: Proxima;
 
@@ -48,7 +55,8 @@ describe('Proxima Class Tests', () => {
         wsServerConfig: { port: 8081 },
         ftpClientConfig: {},
         kafkaClientConfig: { topics: [''], groupId: '', brokers: [] },
-        mqttClientConfig: { clientId: '', brokerUrl: '', topics: [] }
+        mqttClientConfig: { clientId: '', brokerUrl: '', topics: [] },
+        graphQlClientConfig: { endpoint: '' },
     };
 
     beforeEach(() => {
@@ -96,7 +104,13 @@ describe('Proxima Class Tests', () => {
         expect(mockStart).toHaveBeenCalled();
         expect(mockStop).not.toHaveBeenCalled();
     });
-
+    test('should configure and start the GraphQl client', async () => {
+        proxima.setState(`${ProximaProtocol.GRAPHQL_CLIENT}`);
+        await proxima.checkEnvironment();
+        expect(GraphQL_Client).toHaveBeenCalledWith(initialConfig.graphQlClientConfig);
+        expect(mockStart).toHaveBeenCalled();
+        expect(mockStop).not.toHaveBeenCalled();
+    });
     test('should configure and start the WebSocket client', async () => {
         proxima.setState(`${ProximaProtocol.WS_CLIENT}`);
         await proxima.checkEnvironment();
