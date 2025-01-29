@@ -16,7 +16,9 @@
     "release": "yarn lint:fix && yarn version && git push --follow-tags origin main"
   },
   "dependencies": {
+    "@apollo/client": "3.12.8",
     "basic-ftp": "5.0.5",
+    "graphql": "16.10.0",
     "kafkajs": "2.2.4",
     "mqtt": "5.10.3",
     "uuid": "11.0.4",
