@@ -1,16 +1,16 @@
-import dgram, { Socket } from 'dgram';
+import net, { Socket } from 'net';
 import { ProtocolImpl } from "../../types/index";
-import { UdpClientConfig } from './types';
+import { TcpClientConfig } from './types';
 
-class Udp_Client implements ProtocolImpl {
-    private socket: Socket | null = null;
+class Tcp_Client implements ProtocolImpl {
+    private socket: Socket| null = null;
     isConnected: boolean = false;
     private messageBuffer: Buffer = Buffer.alloc(0);
     receivedParsedMessage: Record<string, unknown> = {};
     private reconnectTimeout: NodeJS.Timeout | null = null;
 
     constructor(
-        public config: UdpClientConfig,
+        public config: TcpClientConfig,
         public transformData?: (data: Record<string, unknown>) => Promise<Record<string, unknown>>,
         public validateData?: (validatorObject: Record<string, unknown>) => Promise<void>,
         public sendData?: (data: Record<string, unknown>) => Promise<void>,
@@ -24,44 +24,44 @@ class Udp_Client implements ProtocolImpl {
             return;
         }
         this.isConnected = true;
-        this.socket = dgram.createSocket(this.config.type || 'udp4');
-        this.socket.on('message', this.onMessage.bind(this));
+        this.socket = new net.Socket();
+        this.socket.on('data', this.onData.bind(this));
         this.socket.on('error', this.onError.bind(this));
-        this.socket.bind(this.config.port, this.config.host, () => {
-            console.log('UDP client connected successfully.');
+        if (this.config.keepAlive) {
+            this.socket.setKeepAlive(this.config.keepAlive as boolean);
+        }
+        if (this.config.noDelay) {
+            this.socket.setNoDelay(this.config.noDelay);
+        }
+        if (this.config.timeout) {
+            this.socket.setTimeout(this.config.timeout);
+        }
+
+        this.socket.connect(this.config.port, this.config.host, () => {
+            console.log('TCP client connected successfully.');
         });
     }
 
-    private async onMessage(msg: Buffer): Promise<void> {
-        this.messageBuffer = Buffer.concat([this.messageBuffer, msg]);
+    private async onData(data: Buffer): Promise<void> {
+        this.messageBuffer = Buffer.concat([this.messageBuffer, data]);
         const messageString = this.messageBuffer.toString();
         const messages = messageString.split('\n');
-
         for (let i = 0; i < messages.length; i++) {
-            const completeMessage = messages[i].trim(); // Trim whitespace
+               const completeMessage = messages[i].trim(); // Trim whitespace
 
-            if (completeMessage.length === 0) {
-                continue; // Skip empty messages
-            }
-
-            let parsedData: Record<string, unknown>;
-
-            // Check if the message is JSON-parsable
+        if (completeMessage.length === 0) {
+            continue; // Skip empty messages
+        }
             try {
-                parsedData = JSON.parse(completeMessage);
-            } catch (error) {
-                console.error('Invalid JSON message:', completeMessage);
-                continue; // Skip processing this message
-            }
 
-            try {
                 if (this.validateData) {
-                    await this.validateData(parsedData);
+                    await this.validateData(JSON.parse(completeMessage));
                 }
                 if (this.transformData) {
+                    const parsedData: Record<string, unknown> = JSON.parse(completeMessage);
                     this.receivedParsedMessage = await this.transformData(parsedData);
                 } else {
-                    this.receivedParsedMessage = parsedData;
+                    this.receivedParsedMessage = JSON.parse(completeMessage);
                 }
                 if (this.sendData) {
                     await this.sendData(this.receivedParsedMessage);
@@ -71,8 +71,6 @@ class Udp_Client implements ProtocolImpl {
                 console.error('Error processing message:', error);
             }
         }
-
-        // Keep the last part of the buffer for the next message
         this.messageBuffer = Buffer.from(messages[messages.length - 1]);
     }
 
@@ -99,17 +97,17 @@ class Udp_Client implements ProtocolImpl {
 
     public async sendMessage(message: Record<string, unknown>): Promise<void> {
         if (!this.isConnected) {
-            console.error('UDP client is not connected. Cannot send message.');
+            console.error('TCP client is not connected. Cannot send message.');
             return;
         }
         const msgBuffer = Buffer.from(JSON.stringify(message) + '\n');
-        this.socket?.send(msgBuffer, this.config.remotePort, this.config.remoteHost, (err) => {
+        this.socket?.write(msgBuffer, (err) => {
             if (err) {
-                console.error('Error sending UDP message:', err);
+                console.error('Error sending TCP message:', err);
                 this.isConnected = false;
                 this.handleReconnect();
             } else {
-                console.log('UDP message sent successfully.');
+                console.log('TCP message sent successfully.');
             }
         });
     }
@@ -118,16 +116,15 @@ class Udp_Client implements ProtocolImpl {
         if (!this.isConnected) {
             return;
         }
-        this.socket?.close(() => {
+        this.socket?.end(() => {
             this.isConnected = false;
             this.receivedParsedMessage = {};
             if (this.reconnectTimeout) {
                 clearTimeout(this.reconnectTimeout);
             }
-            this.messageBuffer = Buffer.alloc(0);
-            console.log('UDP client disconnected successfully.');
+            console.log('TCP client disconnected successfully.');
         });
     }
 }
 
-export default Udp_Client;
+export default Tcp_Client;

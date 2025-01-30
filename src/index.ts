@@ -12,6 +12,7 @@ import {
     ProtocolConfigString,
     ProximaConfig,
     ProximaProtocol,
+    TcpClientConfig,
     UdpClientConfig,
     WebSocketClientConfig,
     WebSocketServerConfig
@@ -22,6 +23,7 @@ import Mqtt_Client from "./protocols/mqtt/client";
 import GraphQL_Client from "./protocols/graph-ql/client";
 import Http_Client from "./protocols/http/client";
 import Udp_Client from "./protocols/udp/client";
+import Tcp_Client from "./protocols/tcp/client";
 
 class Proxima {
     ws_server?: WS_Server;
@@ -32,6 +34,7 @@ class Proxima {
     graphql_client?: GraphQL_Client;
     http_client?: Http_Client;
     udp_client?: Udp_Client;
+    tcp_client?: Tcp_Client;
     private intervalId?: NodeJS.Timeout;
     private lastState: string | undefined;
     private lastConfig: Partial<ProximaConfig> = {};
@@ -126,6 +129,12 @@ class Proxima {
             protocols,
             this.proximaConfig.udpClientConfig as UdpClientConfig,
             () => new Udp_Client(this.proximaConfig.udpClientConfig as UdpClientConfig),
+        );
+        await this.manageProtocol(
+            ProximaProtocol.TCP_CLIENT,
+            protocols,
+            this.proximaConfig.tcpClientConfig as TcpClientConfig,
+            () => new Tcp_Client(this.proximaConfig.tcpClientConfig as TcpClientConfig),
         );
     }
 
