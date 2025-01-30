@@ -8,6 +8,7 @@ import { ProximaProtocol, ProximaConfig } from '../src/types';
 import GraphQL_Client from '../src/protocols/graph-ql/client';
 import Http_Client from '../src/protocols/http/client';
 import Udp_Client from '../src/protocols/udp/client';
+import Tcp_Client from '../src/protocols/tcp/client';
 
 jest.mock('../src/protocols/ws/client');
 jest.mock('../src/protocols/ws/server');
@@ -17,7 +18,7 @@ jest.mock('../src/protocols/mqtt/client');
 jest.mock('../src/protocols/graph-ql/client');
 jest.mock('../src/protocols/http/client');
 jest.mock('../src/protocols/udp/client');
-
+jest.mock('../src/protocols/tcp/client');
 const mockStart = jest.fn();
 const mockStop = jest.fn();
 
@@ -56,6 +57,10 @@ const mockStop = jest.fn();
     stop: mockStop,
 }));
 (Udp_Client as jest.Mock).mockImplementation(() => ({
+    start: mockStart,
+    stop: mockStop,
+}));
+(Tcp_Client as jest.Mock).mockImplementation(() => ({
     start: mockStart,
     stop: mockStop,
 }));
@@ -138,6 +143,13 @@ describe('Proxima Class Tests', () => {
         proxima.setState(`${ProximaProtocol.UDP_CLIENT}`);
         await proxima.checkEnvironment();
         expect(Udp_Client).toHaveBeenCalledWith(initialConfig.udpClientConfig);
+        expect(mockStart).toHaveBeenCalled();
+        expect(mockStop).not.toHaveBeenCalled();
+    });
+    test('should configure and start the TCP client', async () => {
+        proxima.setState(`${ProximaProtocol.TCP_CLIENT}`);
+        await proxima.checkEnvironment();
+        expect(Tcp_Client).toHaveBeenCalledWith(initialConfig.tcpClientConfig);
         expect(mockStart).toHaveBeenCalled();
         expect(mockStop).not.toHaveBeenCalled();
     });
