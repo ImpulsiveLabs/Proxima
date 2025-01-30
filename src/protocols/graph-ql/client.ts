@@ -3,7 +3,7 @@ import { GraphQLClientConfig } from './types';
 import { ProtocolImpl } from "../../types/index";
 
 class GraphQL_Client implements ProtocolImpl {
-    private client: ApolloClient<any>;
+    private client: ApolloClient<any> | null = null;
     isConnected: boolean = false;
     receivedParsedMessage: Record<string, unknown> = {};
     private reconnectTimeout: NodeJS.Timeout | null = null;
@@ -15,12 +15,7 @@ class GraphQL_Client implements ProtocolImpl {
         public sendData?: (data: Record<string, unknown>) => Promise<void>,
         public receiveData?: (data: Record<string, unknown>) => Promise<Record<string, unknown>>,
     ) {
-        this.client = new ApolloClient({
-            uri: config.endpoint,
-            cache: new InMemoryCache(),
-            headers: config.headers,
-            ...config
-        });
+
     }
 
     public async start(): Promise<void> {
@@ -28,9 +23,14 @@ class GraphQL_Client implements ProtocolImpl {
             console.log('GraphQL client is already connected. Ignoring connect request.');
             return;
         }
-
+        this.client = new ApolloClient({
+            uri: this.config.endpoint,
+            cache: new InMemoryCache(),
+            headers: this.config.headers,
+            ...this.config
+        });
         try {
-            const previouslyConfigQuery = {...this.config.query};
+            const previouslyConfigQuery = { ...this.config.query };
             this.config.query = gql`{ __typename }`;
             await this.executeQuery();
             this.config.query = previouslyConfigQuery;
@@ -64,29 +64,31 @@ class GraphQL_Client implements ProtocolImpl {
 
         while (attempts < maxRetries) {
             try {
-                const response = await this.client.query({
-                    query: this.config.query,
-                    variables: this.config.variables,
-                });
+                if (this.client) {
+                    const response = await this.client?.query({
+                        query: this.config.query,
+                        variables: this.config.variables,
+                    });
 
-                const data = response.data;
+                    const data = response.data;
 
-                if (this.validateData) {
-                    await this.validateData(data);
+                    if (this.validateData) {
+                        await this.validateData(data);
+                    }
+
+                    if (this.transformData) {
+                        this.receivedParsedMessage = await this.transformData(data);
+                    } else {
+                        this.receivedParsedMessage = data;
+                    }
+
+                    if (this.sendData) {
+                        await this.sendData(this.receivedParsedMessage);
+                    }
+
+                    console.log('Processed query response:', this.receivedParsedMessage);
+                    return this.receivedParsedMessage; // Return the response
                 }
-
-                if (this.transformData) {
-                    this.receivedParsedMessage = await this.transformData(data);
-                } else {
-                    this.receivedParsedMessage = data;
-                }
-
-                if (this.sendData) {
-                    await this.sendData(this.receivedParsedMessage);
-                }
-
-                console.log('Processed query response:', this.receivedParsedMessage);
-                return this.receivedParsedMessage; // Return the response
             } catch (error) {
                 attempts++;
                 console.error(`Error executing GraphQL query (attempt ${attempts}):`, error);

@@ -3,7 +3,7 @@ import { ProtocolImpl } from "../../types/index";
 import { KafkaClientConfig } from "./types";
 
 class Kafka_Client implements ProtocolImpl {
-    kafka: Kafka;
+    kafka: Kafka | null = null;;
     consumer: Consumer | null = null;
     isConnected: boolean = false;
     receivedParsedMessage: Record<string, unknown> = {}
@@ -16,16 +16,12 @@ class Kafka_Client implements ProtocolImpl {
         public sendData?: (data: Record<string, unknown>) => Promise<void>,
         public receiveData?: (data: Record<string, unknown>) => Promise<Record<string, unknown>>,
     ) {
-        const { clientId, brokers, logLevel } = config;
 
-        this.kafka = new Kafka({
-            clientId,
-            brokers,
-            logLevel: logLevel || KafkaLogLevel.INFO,
-        });
     }
 
     public async start(): Promise<void> {
+
+
         if (this.isConnected) {
             console.log("Kafka client is already connected. Ignoring start request.");
             return;
@@ -40,8 +36,14 @@ class Kafka_Client implements ProtocolImpl {
 
     async connect(): Promise<void> {
         console.log("Connecting to Kafka broker...");
+        const { clientId, brokers, logLevel, groupId } = this.config;
+
         try {
-            const { groupId } = this.config;
+            this.kafka = new Kafka({
+                clientId,
+                brokers,
+                logLevel: logLevel || KafkaLogLevel.INFO,
+            });
             this.consumer = this.kafka.consumer({ groupId });
             await this.consumer.connect();
             console.log("Kafka consumer connected.");
@@ -93,7 +95,7 @@ class Kafka_Client implements ProtocolImpl {
                     if (this.transformData) {
                         parsedData = await this.transformData(parsedData);
                     }
-                    
+
                     this.receivedParsedMessage = parsedData;
 
                     if (this.sendData) {

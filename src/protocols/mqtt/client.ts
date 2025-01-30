@@ -3,7 +3,7 @@ import { ProtocolImpl } from "../../types/index";
 import { MqttClientConfig } from "./types";
 
 class Mqtt_Client implements ProtocolImpl {
-    client: MqttClient;
+    client: MqttClient | null = null;
     isConnected: boolean = false;
     receivedParsedMessage: Record<string, unknown> = {};
     private reconnectTimeout: NodeJS.Timeout | null = null;
@@ -15,8 +15,6 @@ class Mqtt_Client implements ProtocolImpl {
         public sendData?: (data: Record<string, unknown>) => Promise<void>,
         public receiveData?: (data: Record<string, unknown>) => Promise<Record<string, unknown>>,
     ) {
-        const { brokerUrl, ...restOfOptions } = config;
-        this.client = connect(brokerUrl, restOfOptions);
     }
 
     public async start(): Promise<void> {
@@ -24,7 +22,8 @@ class Mqtt_Client implements ProtocolImpl {
             console.log("MQTT client is already connected. Ignoring start request.");
             return;
         }
-
+        const { brokerUrl, ...restOfOptions } = this.config;
+        this.client = connect(brokerUrl, restOfOptions);
         this.client.on("connect", () => {
             this.isConnected = true;
             console.log("MQTT client connected.");
@@ -47,7 +46,7 @@ class Mqtt_Client implements ProtocolImpl {
 
         this.reconnectTimeout = setTimeout(() => {
             console.log("Reconnecting to MQTT broker...");
-            this.client.reconnect();
+            this.client?.reconnect();
         }, this.config.reconnectInterval || 5000);
     }
 
@@ -59,7 +58,7 @@ class Mqtt_Client implements ProtocolImpl {
         }
 
         topics.forEach((topic) => {
-            this.client.subscribe(topic, (err) => {
+            this.client?.subscribe(topic, (err) => {
                 if (err) {
                     console.error(`Failed to subscribe to topic "${topic}":`, err);
                 } else {
@@ -68,7 +67,7 @@ class Mqtt_Client implements ProtocolImpl {
             });
         });
 
-        this.client.on("message", async (topic: string, message: Buffer) => {
+        this.client?.on("message", async (topic: string, message: Buffer) => {
             const msg = message.toString();
             if (!msg) return;
 
@@ -108,7 +107,7 @@ class Mqtt_Client implements ProtocolImpl {
                 this.reconnectTimeout = null;
             }
 
-            this.client.end();
+            this.client?.end();
             this.isConnected = false;
             console.log("MQTT client disconnected.");
         } catch (error) {

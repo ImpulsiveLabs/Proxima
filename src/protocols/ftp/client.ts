@@ -4,23 +4,18 @@ import { FTPClientConfig } from "./types";
 
 
 class FTP_Client implements ProtocolImpl {
-    client: Client;
-    config: FTPClientConfig;
+    client: Client | null = null;
     private retryInterval: NodeJS.Timeout | undefined;
     isConnected: boolean = false;
 
     constructor(
-        config: FTPClientConfig,
+        public config: FTPClientConfig,
         public transformData?: (data: Record<string, unknown>) => Promise<Record<string, unknown>>,
         public validateData?: (validatorObject: Record<string, unknown>) => Promise<void>,
         public sendData?: (data: Record<string, unknown>) => Promise<void>,
         public receiveData?: (data: Record<string, unknown>) => Promise<Record<string, unknown>>
     ) {
-        this.config = config;
-        this.client = new Client(config.timeout || 5000);
-        if (config.verbose) {
-            this.client.ftp.verbose = true;
-        }
+
     }
 
     public async start(): Promise<void> {
@@ -36,6 +31,10 @@ class FTP_Client implements ProtocolImpl {
         console.log("Attempting to connect to FTP server...");
         try {
             const { host, port, user, password, secure, secureOptions } = this.config;
+            this.client = new Client(this.config.timeout || 5000);
+            if (this.config.verbose) {
+                this.client.ftp.verbose = true;
+            }
             await this.client.access({
                 host,
                 port,
@@ -63,7 +62,7 @@ class FTP_Client implements ProtocolImpl {
     public async stop(): Promise<void> {
         return new Promise((resolve) => {
             if (this.isConnected) {
-                this.client.close();
+                this.client?.close();
                 this.isConnected = false;
                 if (this.retryInterval) {
                     clearTimeout(this.retryInterval);
@@ -80,7 +79,7 @@ class FTP_Client implements ProtocolImpl {
         if (!this.isConnected) {
             throw new Error("FTP client is not connected.");
         }
-        await this.client.uploadFrom(localPath, remotePath);
+        await this.client?.uploadFrom(localPath, remotePath);
         console.log(`File uploaded from ${localPath} to ${remotePath}`);
     }
 
@@ -88,7 +87,7 @@ class FTP_Client implements ProtocolImpl {
         if (!this.isConnected) {
             throw new Error("FTP client is not connected.");
         }
-        await this.client.downloadTo(localPath, remotePath);
+        await this.client?.downloadTo(localPath, remotePath);
         console.log(`File downloaded from ${remotePath} to ${localPath}`);
     }
 
@@ -96,16 +95,16 @@ class FTP_Client implements ProtocolImpl {
         if (!this.isConnected) {
             throw new Error("FTP client is not connected.");
         }
-        const fileList = await this.client.list(path);
+        const fileList = await this.client?.list(path);
         console.log("Files:", fileList);
-        return fileList;
+        return fileList as FileInfo[];
     }
 
     public async removeFile(path: string): Promise<void> {
         if (!this.isConnected) {
             throw new Error("FTP client is not connected.");
         }
-        await this.client.remove(path);
+        await this.client?.remove(path);
         console.log(`File removed: ${path}`);
     }
 
@@ -113,7 +112,7 @@ class FTP_Client implements ProtocolImpl {
         if (!this.isConnected) {
             throw new Error("FTP client is not connected.");
         }
-        await this.client.ensureDir(path);
+        await this.client?.ensureDir(path);
         console.log(`Directory ensured: ${path}`);
     }
 
@@ -121,8 +120,8 @@ class FTP_Client implements ProtocolImpl {
         if (!this.isConnected) {
             throw new Error("FTP client is not connected.");
         }
-        await this.client.cd(path);
-        await this.client.clearWorkingDir();
+        await this.client?.cd(path);
+        await this.client?.clearWorkingDir();
         console.log(`Directory cleared: ${path}`);
     }
 }
