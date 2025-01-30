@@ -6429,7 +6429,7 @@ __metadata:
     ts-jest: "npm:29.2.5"
     typescript: "npm:5.7.3"
     uuid: "npm:11.0.4"
-    ws: "npm:8.15.0"
+    ws: "npm:8.18.0"
   languageName: unknown
   linkType: soft
 
@@ -7970,22 +7970,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ws@npm:8.15.0":
-  version: 8.15.0
-  resolution: "ws@npm:8.15.0"
-  peerDependencies:
-    bufferutil: ^4.0.1
-    utf-8-validate: ">=5.0.2"
-  peerDependenciesMeta:
-    bufferutil:
-      optional: true
-    utf-8-validate:
-      optional: true
-  checksum: 10/77a106fd0c7284dfb3c2d85e7c8b52f4f898bab0bede8588f443696a6dc95026eb13bda8f390a609340c994c3b88d4839e63c3caf0d0e635575994a3357afdbd
-  languageName: node
-  linkType: hard
-
-"ws@npm:^8.17.1":
+"ws@npm:8.18.0, ws@npm:^8.17.1":
   version: 8.18.0
   resolution: "ws@npm:8.18.0"
   peerDependencies:
