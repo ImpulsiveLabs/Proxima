@@ -4,6 +4,7 @@ import FTP_Client from "./protocols/ftp/client";
 import {
     FTPClientConfig,
     GraphQLClientConfig,
+    HttpClientConfig,
     KafkaClientConfig,
     MqttClientConfig,
     Protocol,
@@ -18,6 +19,7 @@ import { deepEqual } from './utils/utils';
 import Kafka_Client from "./protocols/kafka/client";
 import Mqtt_Client from "./protocols/mqtt/client";
 import GraphQL_Client from "./protocols/graph-ql/client";
+import Http_Client from "./protocols/http/client";
 
 class Proxima {
     ws_server?: WS_Server;
@@ -26,6 +28,7 @@ class Proxima {
     kafka_client?: Kafka_Client;
     mqtt_client?: Mqtt_Client
     graphql_client?: GraphQL_Client;
+    http_client?: Http_Client;
     private intervalId?: NodeJS.Timeout;
     private lastState: string | undefined;
     private lastConfig: Partial<ProximaConfig> = {};
@@ -79,7 +82,6 @@ class Proxima {
             this.proximaConfig.wsServerConfig as WebSocketServerConfig,
             () => new WS_Server(this.proximaConfig.wsServerConfig as WebSocketServerConfig),
         );
-
         await this.manageProtocol(
             ProximaProtocol.WS_CLIENT,
             protocols,
@@ -109,6 +111,12 @@ class Proxima {
             protocols,
             this.proximaConfig.graphQlClientConfig as GraphQLClientConfig,
             () => new GraphQL_Client(this.proximaConfig.graphQlClientConfig as GraphQLClientConfig),
+        );
+        await this.manageProtocol(
+            ProximaProtocol.HTTP_CLIENT,
+            protocols,
+            this.proximaConfig.httpClientConfig as HttpClientConfig,
+            () => new Http_Client(this.proximaConfig.httpClientConfig as HttpClientConfig),
         );
     }
 

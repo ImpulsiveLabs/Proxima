@@ -2,7 +2,7 @@ import axios, { AxiosInstance } from 'axios';
 import { ProtocolImpl } from "../../types/index";
 import { HttpClientConfig } from './types';
 
-class HttpClient implements ProtocolImpl {
+class Http_Client implements ProtocolImpl {
     private client: AxiosInstance;
     isConnected: boolean = false;
     receivedParsedMessage: Record<string, unknown> = {};
@@ -132,4 +132,4 @@ class HttpClient implements ProtocolImpl {
     }
 }
 
-export default HttpClient;
+export default Http_Client;
