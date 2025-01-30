@@ -36,13 +36,13 @@ describe('Kafka_Client Integration Tests with Live Kafka Broker', () => {
 
         await kafkaClient.start();
 
-        const producer = kafkaClient.kafka.producer({
+        const producer = kafkaClient?.kafka?.producer({
             createPartitioner: Partitioners.LegacyPartitioner,
         });
-        await producer.connect();
+        await producer?.connect();
         await new Promise((resolve) => setTimeout(resolve, 1000));
 
-        await producer.send({
+        await producer?.send({
             topic,
             messages: [{ value: JSON.stringify(testMessage) }],
         });
@@ -50,7 +50,7 @@ describe('Kafka_Client Integration Tests with Live Kafka Broker', () => {
 
         expect(kafkaClient.receivedParsedMessage).toEqual(transformedMessage);
 
-        await producer.disconnect();
+        await producer?.disconnect();
         await kafkaClient.stop();
         await new Promise((resolve) => setTimeout(resolve, 1000))
     });
