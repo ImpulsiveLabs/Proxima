@@ -39,7 +39,7 @@ class Http_Client implements ProtocolImpl {
     private async longPoll(): Promise<void> {
         while (this.isConnected) {
             try {
-                let data = null
+                let data = null;
                 if (this.config.longPollEndpoint) {
                     const response = await this.client.get(this.config.longPollEndpoint);
                     data = response.data;
@@ -63,10 +63,30 @@ class Http_Client implements ProtocolImpl {
                 }
             } catch (error) {
                 console.error('Error during long polling:', error);
+                this.handleReconnect();
             }
 
             await new Promise(resolve => setTimeout(resolve, this.config.longPollInterval || 5000));
         }
+    }
+
+    private handleReconnect(): void {
+        if (this.reconnectTimeout) {
+            clearTimeout(this.reconnectTimeout);
+        }
+
+        this.isConnected = false;
+        console.log('Attempting to reconnect...');
+
+        this.reconnectTimeout = setTimeout(async () => {
+            try {
+                await this.start();
+                console.log('Reconnected successfully.');
+            } catch (error) {
+                console.error('Reconnection failed:', error);
+                this.handleReconnect();
+            }
+        }, this.config.reconnectInterval || 5000);
     }
 
     public async executeRequest(method: 'GET' | 'POST', endpoint: string, data?: Record<string, unknown>): Promise<any> {
@@ -124,6 +144,9 @@ class Http_Client implements ProtocolImpl {
         try {
             this.isConnected = false;
             this.receivedParsedMessage = {}; // Clear any received messages
+            if (this.reconnectTimeout) {
+                clearTimeout(this.reconnectTimeout);
+            }
 
             console.log('HTTP client disconnected successfully.');
         } catch (error) {

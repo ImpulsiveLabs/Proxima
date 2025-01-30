@@ -11,6 +11,8 @@ import GraphQL_Client from "../protocols/graph-ql/client"
 import { GraphQLClientConfig } from "../protocols/graph-ql/types"
 import Http_Client from "../protocols/http/client"
 import { HttpClientConfig } from "../protocols/http/types"
+import Udp_Client from "../protocols/udp/client"
+import { UdpClientConfig } from "../protocols/udp/types"
 
 interface ProtocolImpl {
     start: () => Promise<void>
@@ -21,7 +23,7 @@ interface ProtocolImpl {
     receiveData?: (data: Record<string, unknown>) => Promise<Record<string, unknown>>
 }
 
-type Protocol = WS_Client | WS_Server | FTP_Client | Kafka_Client | Mqtt_Client | GraphQL_Client | Http_Client
+type Protocol = WS_Client | WS_Server | FTP_Client | Kafka_Client | Mqtt_Client | GraphQL_Client | Http_Client | Udp_Client
 
 enum ProximaProtocol {
     'WS_CLIENT' = 'ws_client',
@@ -30,11 +32,12 @@ enum ProximaProtocol {
     'KAFKA_CLIENT' = 'kafka_client',
     'MQTT_CLIENT' = 'mqtt_client',
     'GRAPHQL_CLIENT' = 'graphql_client',
-    'HTTP_CLIENT' = 'http_client'
+    'HTTP_CLIENT' = 'http_client',
+    'UDP_CLIENT' = 'udp_client'
 }
-type ProtocolConfigString = "wsServerConfig" | "wsClientConfig" | 'ftpClientConfig' | 'kafkaClientConfig' | 'mqttClientConfig' | 'graphQlClientConfig' | 'httpClientConfig';
+type ProtocolConfigString = "wsServerConfig" | "wsClientConfig" | 'ftpClientConfig' | 'kafkaClientConfig' | 'mqttClientConfig' | 'graphQlClientConfig' | 'httpClientConfig' | 'udpClientConfig';
 
-type ProtocolConfig = WebSocketClientConfig | WebSocketServerConfig | FTPClientConfig | KafkaClientConfig | GraphQLClientConfig | HttpClientConfig;
+type ProtocolConfig = WebSocketClientConfig | WebSocketServerConfig | FTPClientConfig | KafkaClientConfig | GraphQLClientConfig | HttpClientConfig | UdpClientConfig;
 
 type ProximaConfig = {
     configChangeInterval?: number
@@ -44,7 +47,8 @@ type ProximaConfig = {
     kafkaClientConfig?: KafkaClientConfig,
     mqttClientConfig?: MqttClientConfig,
     graphQlClientConfig?: GraphQLClientConfig,
-    httpClientConfig?: HttpClientConfig
+    httpClientConfig?: HttpClientConfig,
+    udpClientConfig?: UdpClientConfig,
 }
 
 export {
@@ -62,4 +66,5 @@ export {
     MqttClientConfig,
     GraphQLClientConfig,
     HttpClientConfig,
+    UdpClientConfig,
 }
