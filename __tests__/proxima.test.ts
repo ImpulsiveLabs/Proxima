@@ -7,6 +7,7 @@ import Mqtt_Client from '../src/protocols/mqtt/client';
 import { ProximaProtocol, ProximaConfig } from '../src/types';
 import GraphQL_Client from '../src/protocols/graph-ql/client';
 import Http_Client from '../src/protocols/http/client';
+import Udp_Client from '../src/protocols/udp/client';
 
 jest.mock('../src/protocols/ws/client');
 jest.mock('../src/protocols/ws/server');
@@ -15,6 +16,7 @@ jest.mock('../src/protocols/kafka/client');
 jest.mock('../src/protocols/mqtt/client');
 jest.mock('../src/protocols/graph-ql/client');
 jest.mock('../src/protocols/http/client');
+jest.mock('../src/protocols/udp/client');
 
 const mockStart = jest.fn();
 const mockStop = jest.fn();
@@ -53,6 +55,10 @@ const mockStop = jest.fn();
     start: mockStart,
     stop: mockStop,
 }));
+(Udp_Client as jest.Mock).mockImplementation(() => ({
+    start: mockStart,
+    stop: mockStop,
+}));
 describe('Proxima Class Tests', () => {
     let proxima: Proxima;
 
@@ -64,7 +70,8 @@ describe('Proxima Class Tests', () => {
         kafkaClientConfig: { topics: [''], groupId: '', brokers: [] },
         mqttClientConfig: { clientId: '', brokerUrl: '', topics: [] },
         graphQlClientConfig: { endpoint: '' },
-        httpClientConfig: {}
+        httpClientConfig: {},
+        udpClientConfig: { host: 'localhost', port: 0, type: 'udp4', remoteHost: 'localhost', remotePort: 0 }
     };
 
     beforeEach(() => {
@@ -98,7 +105,7 @@ describe('Proxima Class Tests', () => {
         expect(mockStart).toHaveBeenCalled();
         expect(mockStop).not.toHaveBeenCalled();
     });
-    test('should configure and start the Ftp client', async () => {
+    test('should configure and start the Http client', async () => {
         proxima.setState(`${ProximaProtocol.HTTP_CLIENT}`);
         await proxima.checkEnvironment();
 
@@ -124,6 +131,13 @@ describe('Proxima Class Tests', () => {
         proxima.setState(`${ProximaProtocol.GRAPHQL_CLIENT}`);
         await proxima.checkEnvironment();
         expect(GraphQL_Client).toHaveBeenCalledWith(initialConfig.graphQlClientConfig);
+        expect(mockStart).toHaveBeenCalled();
+        expect(mockStop).not.toHaveBeenCalled();
+    });
+    test('should configure and start the UDP client', async () => {
+        proxima.setState(`${ProximaProtocol.UDP_CLIENT}`);
+        await proxima.checkEnvironment();
+        expect(Udp_Client).toHaveBeenCalledWith(initialConfig.udpClientConfig);
         expect(mockStart).toHaveBeenCalled();
         expect(mockStop).not.toHaveBeenCalled();
     });
