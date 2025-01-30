@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@apollo/client": "3.12.8",
+    "axios": "1.7.9",
     "basic-ftp": "5.0.5",
     "graphql": "16.10.0",
     "kafkajs": "2.2.4",

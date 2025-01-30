@@ -9,6 +9,8 @@ import Mqtt_Client from "../protocols/mqtt/client"
 import { MqttClientConfig } from "../protocols/mqtt/types"
 import GraphQL_Client from "../protocols/graph-ql/client"
 import { GraphQLClientConfig } from "../protocols/graph-ql/types"
+import Http_Client from "../protocols/http/client"
+import { HttpClientConfig } from "../protocols/http/types"
 
 interface ProtocolImpl {
     start: () => Promise<void>
@@ -19,7 +21,7 @@ interface ProtocolImpl {
     receiveData?: (data: Record<string, unknown>) => Promise<Record<string, unknown>>
 }
 
-type Protocol = WS_Client | WS_Server | FTP_Client | Kafka_Client | Mqtt_Client | GraphQL_Client
+type Protocol = WS_Client | WS_Server | FTP_Client | Kafka_Client | Mqtt_Client | GraphQL_Client | Http_Client
 
 enum ProximaProtocol {
     'WS_CLIENT' = 'ws_client',
@@ -27,11 +29,12 @@ enum ProximaProtocol {
     'FTP_CLIENT' = 'ftp_client',
     'KAFKA_CLIENT' = 'kafka_client',
     'MQTT_CLIENT' = 'mqtt_client',
-    'GRAPHQL_CLIENT' = 'graphql_client'
+    'GRAPHQL_CLIENT' = 'graphql_client',
+    'HTTP_CLIENT' = 'http_client'
 }
-type ProtocolConfigString = "wsServerConfig" | "wsClientConfig" | 'ftpClientConfig' | 'kafkaClientConfig' | 'mqttClientConfig' | 'graphQlClientConfig';
+type ProtocolConfigString = "wsServerConfig" | "wsClientConfig" | 'ftpClientConfig' | 'kafkaClientConfig' | 'mqttClientConfig' | 'graphQlClientConfig' | 'httpClientConfig';
 
-type ProtocolConfig = WebSocketClientConfig | WebSocketServerConfig | FTPClientConfig | KafkaClientConfig | GraphQLClientConfig;
+type ProtocolConfig = WebSocketClientConfig | WebSocketServerConfig | FTPClientConfig | KafkaClientConfig | GraphQLClientConfig | HttpClientConfig;
 
 type ProximaConfig = {
     configChangeInterval?: number
@@ -41,6 +44,7 @@ type ProximaConfig = {
     kafkaClientConfig?: KafkaClientConfig,
     mqttClientConfig?: MqttClientConfig,
     graphQlClientConfig?: GraphQLClientConfig,
+    httpClientConfig?: HttpClientConfig
 }
 
 export {
@@ -57,4 +61,5 @@ export {
     KafkaClientConfig,
     MqttClientConfig,
     GraphQLClientConfig,
+    HttpClientConfig,
 }

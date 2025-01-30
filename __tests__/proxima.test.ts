@@ -6,6 +6,7 @@ import WS_Server from '../src/protocols/ws/server';
 import Mqtt_Client from '../src/protocols/mqtt/client';
 import { ProximaProtocol, ProximaConfig } from '../src/types';
 import GraphQL_Client from '../src/protocols/graph-ql/client';
+import Http_Client from '../src/protocols/http/client';
 
 jest.mock('../src/protocols/ws/client');
 jest.mock('../src/protocols/ws/server');
@@ -13,6 +14,7 @@ jest.mock('../src/protocols/ftp/client');
 jest.mock('../src/protocols/kafka/client');
 jest.mock('../src/protocols/mqtt/client');
 jest.mock('../src/protocols/graph-ql/client');
+jest.mock('../src/protocols/http/client');
 
 const mockStart = jest.fn();
 const mockStop = jest.fn();
@@ -46,6 +48,11 @@ const mockStop = jest.fn();
     start: mockStart,
     stop: mockStop,
 }));
+
+(Http_Client as jest.Mock).mockImplementation(() => ({
+    start: mockStart,
+    stop: mockStop,
+}));
 describe('Proxima Class Tests', () => {
     let proxima: Proxima;
 
@@ -57,6 +64,7 @@ describe('Proxima Class Tests', () => {
         kafkaClientConfig: { topics: [''], groupId: '', brokers: [] },
         mqttClientConfig: { clientId: '', brokerUrl: '', topics: [] },
         graphQlClientConfig: { endpoint: '' },
+        httpClientConfig: {}
     };
 
     beforeEach(() => {
@@ -87,6 +95,14 @@ describe('Proxima Class Tests', () => {
         await proxima.checkEnvironment();
 
         expect(FTP_Client).toHaveBeenCalledWith(initialConfig.ftpClientConfig);
+        expect(mockStart).toHaveBeenCalled();
+        expect(mockStop).not.toHaveBeenCalled();
+    });
+    test('should configure and start the Ftp client', async () => {
+        proxima.setState(`${ProximaProtocol.HTTP_CLIENT}`);
+        await proxima.checkEnvironment();
+
+        expect(Http_Client).toHaveBeenCalledWith(initialConfig.httpClientConfig);
         expect(mockStart).toHaveBeenCalled();
         expect(mockStop).not.toHaveBeenCalled();
     });
