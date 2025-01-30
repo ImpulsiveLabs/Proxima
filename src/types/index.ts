@@ -9,8 +9,8 @@ import Mqtt_Client from "../protocols/mqtt/client"
 import { MqttClientConfig } from "../protocols/mqtt/types"
 import GraphQL_Client from "../protocols/graph-ql/client"
 import { GraphQLClientConfig } from "../protocols/graph-ql/types"
-import Http_Client from "src/protocols/http/client"
-import { HttpClientConfig } from "src/protocols/http/types"
+import Http_Client from "../protocols/http/client"
+import { HttpClientConfig } from "../protocols/http/types"
 
 interface ProtocolImpl {
     start: () => Promise<void>
