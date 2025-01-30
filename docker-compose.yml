@@ -63,15 +63,8 @@ services:
       HASURA_GRAPHQL_ENABLE_CONSOLE: "true"
       HASURA_GRAPHQL_ADMIN_SECRET: "myadminsecretkey"
       HASURA_GRAPHQL_MIGRATIONS_DIR: "/hasura-migrations" # Specify the migrations directory
-    command: >
-      sh -c "
-      hasura graphql-engine serve
-      "
     restart: always
 
 networks:
   kafka-net:
     driver: bridge
-
-volumes:
-  postgres_data:
