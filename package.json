@@ -16,7 +16,7 @@
     "release": "yarn lint:fix && yarn version && git push --follow-tags origin main"
   },
   "dependencies": {
-    "@apollo/client": "3.12.8",
+    "@apollo/client": "3.12.9",
     "axios": "1.7.9",
     "basic-ftp": "5.0.5",
     "graphql": "16.10.0",
